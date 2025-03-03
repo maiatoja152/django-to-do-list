@@ -1,0 +1,9 @@
+[project]
+name = "django-to-do-list"
+version = "0.1.0"
+description = "To-do list Django web application."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.1.6",
+]
