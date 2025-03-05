@@ -9,6 +9,7 @@ from .models import Task
 
 from bs4 import BeautifulSoup
 from bs4 import Tag
+from typing import Sequence
 
 
 class ViewTests(TestCase):
@@ -16,9 +17,9 @@ class ViewTests(TestCase):
     view_name: str
 
 
-    def get_view_response(self) -> HttpResponse:
+    def get_view_response(self, *, args: Sequence=()) -> HttpResponse:
         """Get an HttpResponse for the view."""
-        return self.client.get(reverse(self.view_name))
+        return self.client.get(reverse(self.view_name, args=args))
 
 
 class TaskListViewTests(ViewTests):
@@ -60,3 +61,23 @@ class TaskListViewTests(ViewTests):
                 self.assertIn("checked", checkbox.attrs)
             else:
                 self.assertNotIn("checked", checkbox.attrs)
+
+
+class TaskDetailViewTests(ViewTests):
+    """Tests for the Task Detail view."""
+    view_name = "todo:task-detail"
+
+
+    def test_nonexistent_task(self) -> None:
+        """
+        Test that a 404 Not Found is returned for the detail view of a
+        nonexistent task.
+        """
+        response: HttpResponse = self.get_view_response(args=(0,))
+        self.assertEqual(response.status_code, 404)
+        
+    
+    def test_task(self) -> None:
+        """
+        """
+        pass

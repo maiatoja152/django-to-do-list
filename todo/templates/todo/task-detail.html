@@ -1,0 +1,21 @@
+{% extends "./base.html" %}
+
+{% block title %}{{ task.title }}{% endblock %}
+
+{% block content %}
+<form action="{% url "todo:edit-task" task.id %}" method="post">
+    {% csrf_token %}
+    <h1><input type="text" name="title" value="{{ task.title }}"></h1>
+    <input type="checkbox" id="done-checkbox" name="done" {% if task.completed %}checked{%endif%}>
+    <label for="done-checkbox">Task done!</label>
+    <h2>Due date</h2>
+    {{ task.due_date }}
+    <!--
+    <input type="datetime-local" name="due-date">
+    -->
+    <h2>Description</h2>
+    <textarea name="description" placeholder="Enter a description." rows="5" cols="60">{{ task.description }}</textarea>
+
+    <input type="submit" value="SAVE">
+</form>
+{% endblock %}

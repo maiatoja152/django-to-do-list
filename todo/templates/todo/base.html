@@ -6,6 +6,9 @@
         <title>{% block title %}{% endblock %}</title>
     </head>
     <body>
+        <header>
+            <a href="{% url "todo:task-list" %}">Home</a>
+        </header>
         {% block content %}{% endblock %}
     </body>
 </html>
