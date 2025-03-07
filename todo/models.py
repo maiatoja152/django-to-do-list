@@ -18,5 +18,9 @@ class Task(models.Model):
         null=True,
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.title)
+    
+
+    def due_date_as_html_input_value(self) -> str:
+        return self.due_date.strftime("%Y-%m-%dT%H:%M")

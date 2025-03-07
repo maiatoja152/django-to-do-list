@@ -23,4 +23,5 @@ def task_detail(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 def edit_task(request: HttpRequest, pk: int) -> HttpResponseRedirect:
+    task = get_object_or_404(Task, pk=pk)
     return redirect(reverse("todo:task-detail", args=(pk,)))
