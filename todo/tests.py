@@ -52,7 +52,7 @@ class TaskListViewTests(ViewTests):
             tasks,
             ordered=False,
         )
-        soup: BeautifulSoup = BeautifulSoup(response.content)
+        soup: BeautifulSoup = BeautifulSoup(response.content, "lxml")
         for task in tasks:
             self.assertContains(response, task.title)
             # Test checkbox
