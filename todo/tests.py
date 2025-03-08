@@ -108,21 +108,21 @@ class TaskDetailViewTests(ViewTests):
             self.assertEqual(response.status_code, 200)
             soup: BeautifulSoup = BeautifulSoup(response.content, "lxml")
             def get_tag_and_assert_only_one(selector: str) -> Tag:
-                result_set: ResultSet = soup.select("textarea#task-title")
+                result_set: ResultSet = soup.select(selector)
                 self.assertEqual(len(result_set), 1)
                 return result_set[0]
 
-            title: Tag = get_tag_and_assert_only_one("textarea#task-title")
+            title: Tag = get_tag_and_assert_only_one("textarea#id_title")
             title_string: Optional[str] = title.string
             self.assertTrue(isinstance(title_string, str))
             self.assertEqual(title_string, task.title)
 
-            checkbox: Tag = get_tag_and_assert_only_one("input#task-completed")
+            checkbox: Tag = get_tag_and_assert_only_one("input#id_completed")
             self.assertEqual(checkbox["type"], "checkbox")
             if task.completed:
                 self.assertIn("checked", checkbox.attrs)
             
-            due_date: Tag = get_tag_and_assert_only_one("input#task-due-date")
+            due_date: Tag = get_tag_and_assert_only_one("input#id_due_date")
             self.assertEqual(due_date["type"], "datetime-local")
             self.assertEqual(
                 due_date["value"],
@@ -130,7 +130,7 @@ class TaskDetailViewTests(ViewTests):
             )
 
             description: Tag = get_tag_and_assert_only_one(
-                "textarea#task-description"
+                "textarea#id_description"
             )
             description_string: Optional[str] = description.string
             self.assertTrue(isinstance(description_string, str))
