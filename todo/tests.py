@@ -137,8 +137,11 @@ class TaskDetailViewTests(ViewTests):
             self.assertEqual(description_string, task.description)
 
 
-class TaskEditViewTests(ViewTests):
-    """Tests for the edit task view."""
+class TaskDetailViewPostTests(ViewTests):
+    """Tests for the task detail view with POST requests."""
+    view_name = "todo:task-detail"
+
+
     def test_returns_404_for_nonexistent_task(self) -> None:
         """
         Test that the view returns a 404 not found for a nonexistent task.
