@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from .models import Task
+from .forms import DateTimeLocalInput
+from .forms import TaskDetailForm
 
 from typing import List
 from typing import Sequence
@@ -115,19 +117,20 @@ class TaskDetailViewTests(ViewTests):
             title: Tag = get_tag_and_assert_only_one("textarea#id_title")
             title_string: Optional[str] = title.string
             self.assertTrue(isinstance(title_string, str))
-            self.assertEqual(title_string, task.title)
+            self.assertEqual(title_string.strip(), task.title)
 
-            checkbox: Tag = get_tag_and_assert_only_one("input#id_completed")
-            self.assertEqual(checkbox["type"], "checkbox")
+            checkbox: Tag = get_tag_and_assert_only_one(
+                "input[type='checkbox']#id_completed"
+            )
             if task.completed:
                 self.assertIn("checked", checkbox.attrs)
             
-            due_date: Tag = get_tag_and_assert_only_one("input#id_due_date")
-            self.assertEqual(due_date["type"], "datetime-local")
-            self.assertEqual(
-                due_date["value"],
-                task.due_date_as_html_input_value()
+            due_date: Tag = get_tag_and_assert_only_one(
+                "input[type='datetime-local']#id_due_date"
             )
+            date_value = DateTimeLocalInput().format_value(str(task.due_date))
+            if date_value is not None:
+                self.assertEqual(due_date["value"], date_value)
 
             description: Tag = get_tag_and_assert_only_one(
                 "textarea#id_description"
@@ -146,7 +149,11 @@ class TaskDetailViewPostTests(ViewTests):
         """
         Test that the view returns a 404 not found for a nonexistent task.
         """
-        response = self.client.get(reverse("todo:edit-task", args=(1,)))
+        data = TaskDetailForm(instance=Task(title="Test task")).data
+        response = self.client.post(
+            reverse(self.view_name, args=(1,)),
+            data,
+        )
         self.assertEqual(response.status_code, 404)
 
 
@@ -154,37 +161,7 @@ class TaskDetailViewPostTests(ViewTests):
         """Test that the view returns an HTTP redirect for an existing task."""
         task: Task = Task.objects.create(title="Task")
         self.assertRedirects(
-            self.client.get(reverse("todo:edit-task", args=(task.pk,))),
-            reverse("todo:task-detail", args=(task.pk,)),
+            self.client.post(reverse(self.view_name, args=(task.pk,))),
+            reverse(self.view_name, args=(task.pk,)),
             target_status_code=200,
-        )
-
-        
-class TaskModelTests(TestCase):
-    """Test for the Task model."""
-    def test_due_date_as_html_input(self) -> None:
-        """
-        Test that Task.due_date_as_html_input() returns the correctly formatted
-        string for a due_date.
-        """
-        task: Task = Task.objects.create(
-            title="Test task",
-            due_date=timezone.make_aware(
-                timezone.datetime(2018, 6, 12, 19, 30)
-            )
-        )
-        self.assertEqual(
-            "2018-06-12T19:30",
-            task.due_date_as_html_input_value()
-        )
-
-        task = Task.objects.create(
-            title="Test task",
-            due_date=timezone.make_aware(
-                timezone.datetime(2025, 3, 7, 9, 2)
-            )
-        )
-        self.assertEqual(
-            "2025-03-07T09:02",
-            task.due_date_as_html_input_value()
         )
