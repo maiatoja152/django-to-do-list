@@ -9,13 +9,7 @@
 
     <h1>
         {{ form.title.errors }}
-        <textarea 
-        id="{{ form.title.id_for_label }}"
-        name="{{ form.title.name }}"
-        rows="1"
-        cols="50"
-        required
-        >{{ form.title.value }}</textarea>
+        {{ form.title }}
     </h1>
 
     <div>
@@ -29,13 +23,7 @@
             {{ form.due_date.label }}
         </h2>
         {{ form.due_date.errors }}
-        <input
-        type="datetime-local"
-        id="{{ form.due_date.id_for_label }}"
-        name="{{ form.due_date.name }}"
-        value="{{ task.due_date_as_html_input_value }}"
-        required
-        >
+        {{ form.due_date }}
     </div>
 
     <div>
@@ -43,12 +31,7 @@
             {{ form.description.label }}
         </h2>
         {{ form.description.errors }}
-        <textarea
-        id="{{ form.description.label_for_id }}"
-        name="{{ form.description.name }}"
-        cols="50"
-        rows="10"
-        >{{ form.description.value }}</textarea>
+        {{ form.description }}
     </div>
 
     <input type="submit" value="SAVE">
