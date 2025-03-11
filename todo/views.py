@@ -7,7 +7,7 @@ from django.http import HttpRequest
 
 from .models import Task
 
-from .forms import TaskDetailForm
+from .forms import TaskForm
 
 
 def task_list(request: HttpRequest) -> HttpResponse:
@@ -17,14 +17,14 @@ def task_list(request: HttpRequest) -> HttpResponse:
 def task_detail(request: HttpRequest, pk: int) -> HttpResponse:
     task: Task = get_object_or_404(Task, pk=pk)
 
-    form: TaskDetailForm
+    form: TaskForm
     if request.method == "POST":
-        form = TaskDetailForm(request.POST, instance=task)
+        form = TaskForm(request.POST, instance=task)
         if form.is_valid():
             form.save()
             return redirect(reverse("todo:task-detail", args=(pk,)))
     else:
-        form = TaskDetailForm(instance=task)
+        form = TaskForm(instance=task)
 
     context = {"task_title": task.title, "form": form}
     return render(request, "todo/task-detail.html", context)

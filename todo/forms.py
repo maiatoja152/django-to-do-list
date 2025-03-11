@@ -16,14 +16,15 @@ class DateTimeLocalInput(forms.widgets.Input):
         if value is None:
             return None
         else:
-            datetime_pattern: str = r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2})(:\d{2})$"
+            datetime_pattern: str = \
+                r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2})(:\d{2})$"
             match: Optional[re.Match] = re.match(datetime_pattern, value)
             if match is None:
                 return None
             else:
                 return match[1]
 
-class TaskDetailForm(forms.ModelForm):
+class TaskForm(forms.ModelForm):
     class Meta:
         model = Task
         fields = [

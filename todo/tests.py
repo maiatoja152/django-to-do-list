@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from .models import Task
 from .forms import DateTimeLocalInput
-from .forms import TaskDetailForm
+from .forms import TaskForm
 
 from typing import List
 from typing import Sequence
@@ -83,6 +83,34 @@ class TaskDetailViewTests(ViewTests):
         self.assertEqual(response.status_code, 404)
         
     
+    def test_post_returns_404_for_nonexistent_task(self) -> None:
+        """
+        Test that the view returns a 404 not found to a POST request for
+        a nonexistent task.
+        """
+        response = self.client.post(reverse(self.view_name, args=(1,)))
+        self.assertEqual(response.status_code, 404)
+    
+
+    def test_existing_task_returns_ok(self) -> None:
+        """
+        Test that the view returns a 200 OK response to a GET request for
+        an existing task.
+        """
+        task: Task = Task.objects.create(
+            title="Test task",
+            completed=True,
+            due_date=timezone.now(),
+            description="This is a test task.",
+        )
+        response: HttpResponse = self.get_view_response(args=(task.pk,))
+        self.assertEqual(response.status_code, 200)
+
+
+class TaskFormTests(TestCase):
+    """Tests for TaskForm."""
+
+
     def test_completed_and_incomplete_tasks(self) -> None:
         """
         Test that a task's title is shown in a textarea, its completed status
@@ -92,13 +120,13 @@ class TaskDetailViewTests(ViewTests):
         This is done with both a complete and an incomplete task to test that
         the checkbox indicating completion is correct in both cases.
         """
-        completed_task: Task = Task.objects.create(
+        completed_task: Task = Task(
             title="Completed task",
             completed=True,
             due_date=timezone.make_aware(timezone.datetime(2023, 3, 3, 5, 5)),
             description="This is a completed task.",
         )
-        incomplete_task: Task = Task.objects.create(
+        incomplete_task: Task = Task(
             title="Incomplete task",
             completed=True,
             due_date=timezone.make_aware(timezone.datetime(2020, 6, 1, 1, 55)),
@@ -106,9 +134,8 @@ class TaskDetailViewTests(ViewTests):
         )
 
         for task in completed_task, incomplete_task:
-            response: HttpResponse = self.get_view_response(args=(task.pk,))
-            self.assertEqual(response.status_code, 200)
-            soup: BeautifulSoup = BeautifulSoup(response.content, "lxml")
+            form_html: str = str(TaskForm(instance=task))
+            soup: BeautifulSoup = BeautifulSoup(form_html, "lxml")
             def get_tag_and_assert_only_one(selector: str) -> Tag:
                 result_set: ResultSet = soup.select(selector)
                 self.assertEqual(len(result_set), 1)
@@ -137,7 +164,7 @@ class TaskDetailViewTests(ViewTests):
             )
             description_string: Optional[str] = description.string
             self.assertTrue(isinstance(description_string, str))
-            self.assertEqual(description_string, task.description)
+            self.assertEqual(description_string.strip(), task.description)
 
 
 class TaskDetailViewPostTests(ViewTests):
@@ -145,23 +172,13 @@ class TaskDetailViewPostTests(ViewTests):
     view_name = "todo:task-detail"
 
 
-    def test_returns_404_for_nonexistent_task(self) -> None:
+    def test_post_returns_404_for_nonexistent_task(self) -> None:
         """
         Test that the view returns a 404 not found for a nonexistent task.
         """
-        data = TaskDetailForm(instance=Task(title="Test task")).data
+        data = TaskForm(instance=Task(title="Test task")).data
         response = self.client.post(
             reverse(self.view_name, args=(1,)),
             data,
         )
         self.assertEqual(response.status_code, 404)
-
-
-    def test_returns_redirect_for_existing_task(self) -> None:
-        """Test that the view returns an HTTP redirect for an existing task."""
-        task: Task = Task.objects.create(title="Task")
-        self.assertRedirects(
-            self.client.post(reverse(self.view_name, args=(task.pk,))),
-            reverse(self.view_name, args=(task.pk,)),
-            target_status_code=200,
-        )
