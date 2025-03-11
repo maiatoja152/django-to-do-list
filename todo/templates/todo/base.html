@@ -1,14 +1,22 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}{% endblock %}</title>
+        <link href="{% static "todo/styles.css" %}" rel="stylesheet">
     </head>
     <body>
         <header>
-            <a href="{% url "todo:task-list" %}">Home</a>
+            <nav>
+                <ul>
+                    <li><a href="{% url "todo:task-list" %}">Home</a></li>
+                </ul>
+            </nav>
         </header>
-        {% block content %}{% endblock %}
+        <main>
+            {% block content %}{% endblock %}
+        </main>
     </body>
 </html>
