@@ -4,6 +4,8 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponse
 from django.http import HttpRequest
+from django.http import HttpResponseNotAllowed
+from django.http import HttpResponseBadRequest
 
 from .models import Task
 
@@ -28,3 +30,14 @@ def task_detail(request: HttpRequest, pk: int) -> HttpResponse:
 
     context = {"task_title": task.title, "form": form}
     return render(request, "todo/task-detail.html", context)
+
+
+def create_task(request: HttpRequest) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseNotAllowed(("POST",))
+    
+    if "title" in request.POST:
+        Task.objects.create(title=request.POST["title"])
+        return HttpResponse(status=201)
+    else:
+        return HttpResponseBadRequest("title is required.")

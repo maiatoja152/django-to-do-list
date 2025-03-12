@@ -7,10 +7,8 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
 
-    <h1>
-        {{ form.title.errors }}
-        {{ form.title }}
-    </h1>
+    {{ form.title.errors }}
+    {{ form.title }}
 
     <div>
         {{ form.completed.errors }}

@@ -34,7 +34,11 @@ class TaskForm(forms.ModelForm):
             "description",
         ]
         widgets = {
-            "title": forms.Textarea(attrs={"rows": 1, "cols": 60}),
+            "title": forms.Textarea(attrs={
+                "class": "task-title",
+                "rows": 1,
+                "cols": 60
+            }),
             "due_date": DateTimeLocalInput(),
             "description": forms.Textarea(attrs={"rows": 10, "cols": 60}),
         }

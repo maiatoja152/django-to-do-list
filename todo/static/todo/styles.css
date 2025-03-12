@@ -53,6 +53,7 @@ input{
 
 input[type="submit"] {
     padding: 0.5rem 1rem 0.5rem 1rem;
+    margin-top: 1rem;
     background-color: var(--accent-color);
     font-size: 1rem;
     border: none;
@@ -70,7 +71,8 @@ textarea {
     width: 100%;
     max-width: var(--main-column-width);
 }
-textarea#id_title {
+textarea.task-title {
+    margin-top: 1rem;
     font-size: 1.5rem;
     font-weight: bold;
 }

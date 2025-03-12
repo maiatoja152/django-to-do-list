@@ -1,10 +1,16 @@
 {% extends "./base.html" %}
+{% load static %}
 
 {% block title %}Your Tasks{% endblock %}
+{% block scripts %}
+<script>var CSRF_TOKEN = "{{ csrf_token }}";</script>
+<script src="{% static "todo/task-list.js" %}" defer></script>
+{% endblock %}
 
 {% block content %}
-<h1>Tasks</h1>
 <form>
+    <textarea type="text" class="task-title" rows="1" placeholder="Add a new task..."></textarea>
+    <h1>Tasks</h1>
     {% if task_list %}
     <ul>
         {% for task in task_list %}
