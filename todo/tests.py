@@ -227,3 +227,71 @@ class CreateTaskViewTests(ViewTests):
         )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(len(Task.objects.all()), 0)
+
+
+class EditTaskCompletedViewTests(ViewTests):
+    view_name = "todo:edit-task-completed"
+
+
+    def test_get_request_not_allowed(self) -> None:
+        """
+        Test that the view returns a 405 Method Not Allowed for a GET request.
+        """
+        task: Task = Task.objects.create(title="Test task")
+        response: HttpResponse = self.get_view_response(path_args=(task.pk,))
+        self.assertEqual(response.status_code, 405)
+
+    
+    def test_not_found_for_nonexistent_task(self) -> None:
+        """
+        Test that the view returns a 404 Not Found in response to a POST
+        request for a nonexistent task.
+        """
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(1,)),
+        )
+        self.assertEqual(response.status_code, 404)
+    
+
+    def test_post_request_no_completed_field(self) -> None:
+        """
+        Test that the view returns a 400 Bad Request for a POST request
+        lacking a "completed" field.
+        """
+        task: Task = Task.objects.create(title="Test task")
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(task.pk,)),
+            {},
+        )
+        self.assertEqual(response.status_code, 400)
+    
+    def test_set_task_completed(self) -> None:
+        """
+        Test that a task's completed field is set to True in response
+        to a POST request containing completed=True.
+        """
+        task: Task = Task.objects.create(title="Test task", completed=False)
+        self.assertFalse(task.completed)
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(task.pk,)),
+            { "completed": True },
+        )
+        self.assertEqual(response.status_code, 200)
+        task.refresh_from_db()
+        self.assertTrue(task.completed)
+
+
+    def test_set_task_not_completed(self) -> None:
+        """
+        Test that a task's completed field is set to False in response
+        to a POST request containing completed=False.
+        """
+        task: Task = Task.objects.create(title="Test task", completed=True)
+        self.assertTrue(task.completed)
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(task.pk,)),
+            { "completed": False },
+        )
+        self.assertEqual(response.status_code, 200)
+        task.refresh_from_db()
+        self.assertFalse(task.completed)

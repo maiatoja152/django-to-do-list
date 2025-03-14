@@ -49,6 +49,8 @@ def edit_task_completed(request: HttpRequest, pk: int) -> HttpResponse:
         return HttpResponseNotAllowed(("POST",))
 
     task: Task = get_object_or_404(Task, pk=pk)
-    task.completed = request.POST["completed"] == "true"
+    if "completed" not in request.POST:
+        return HttpResponseBadRequest("\"completed\" field is required.")
+    task.completed = request.POST["completed"].lower() == "true"
     task.save()
     return HttpResponse(status=200)

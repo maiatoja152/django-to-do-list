@@ -11,6 +11,6 @@ urlpatterns = [
     path(
         "api/edit-task-completed/<int:pk>",
         views.edit_task_completed,
-        name="edit-task"
+        name="edit-task-completed"
     ),
 ]
