@@ -3,7 +3,6 @@
 function send_post_request(path, dataObject, doneStatusCode, onDone) {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", path, true);
-    xhr.setRequestHeader("Content-Type", "application-x-www-form-urlencoded");
     xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
     xhr.onreadystatechange = () => {
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === doneStatusCode) {
