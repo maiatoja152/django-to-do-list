@@ -1,15 +1,24 @@
 "use strict";
 
+function objectToUrlEncoded(dataObject) {
+    let encoded = "";
+    for (const [key, value] of Object.entries(dataObject)) {
+        encoded += `${key}=${value}&`;
+    }
+    return encoded;
+}
+
 function send_post_request(path, dataObject, doneStatusCode, onDone) {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", path, true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.setRequestHeader("X-CSRFToken", CSRF_TOKEN);
     xhr.onreadystatechange = () => {
         if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === doneStatusCode) {
             onDone();
         }
     };
-    xhr.send(JSON.stringify(dataObject));
+    xhr.send(objectToUrlEncoded(dataObject));
 }
 
 function createTask(dataObject) {

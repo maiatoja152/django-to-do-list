@@ -11,10 +11,6 @@ from .models import Task
 
 from .forms import TaskForm
 
-import json
-from typing import Dict
-from typing import Any
-
 
 def task_list(request: HttpRequest) -> HttpResponse:
     return render(request, "todo/task-list.html", {"task_list": Task.objects.all()})
@@ -40,21 +36,19 @@ def create_task(request: HttpRequest) -> HttpResponse:
     if request.method != "POST":
         return HttpResponseNotAllowed(("POST",))
 
-    data = json.loads(request.body)
-    form: TaskForm = TaskForm(data)
+    form: TaskForm = TaskForm(request.POST)
     if form.is_valid():
         form.save()
         return HttpResponse(status=201)
     else:
-        return HttpResponseBadRequest(str(form.errors) + str(request.body))
+        return HttpResponseBadRequest(str(form.errors) + str(request.POST))
 
 
 def edit_task_completed(request: HttpRequest, pk: int) -> HttpResponse:
     if request.method != "POST":
         return HttpResponseNotAllowed(("POST",))
-    
+
     task: Task = get_object_or_404(Task, pk=pk)
-    data: Dict[str, Any] = json.loads(request.body)
-    task.completed = data["completed"]
+    task.completed = request.POST["completed"] == "true"
     task.save()
     return HttpResponse(status=200)

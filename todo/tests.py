@@ -22,9 +22,9 @@ class ViewTests(TestCase):
     view_name: str
 
 
-    def get_view_response(self, *, args: Sequence=()) -> HttpResponse:
-        """Get an HttpResponse for the view."""
-        return self.client.get(reverse(self.view_name, args=args))
+    def get_view_response(self, *, path_args: Sequence=()) -> HttpResponse:
+        """Get an HttpResponse for a simple GET request to the view."""
+        return self.client.get(reverse(self.view_name, args=path_args))
 
 
 class TaskListViewTests(ViewTests):
@@ -61,7 +61,7 @@ class TaskListViewTests(ViewTests):
         for task in tasks:
             self.assertContains(response, task.title)
             # Test checkbox
-            checkbox: Tag = soup.select(f"input#task-{task.id}-checkbox")[0]
+            checkbox: Tag = soup.select(f"input.task-list-checkbox")[0]
             if task.completed:
                 self.assertIn("checked", checkbox.attrs)
             else:
@@ -78,7 +78,7 @@ class TaskDetailViewTests(ViewTests):
         Test that a 404 Not Found is returned for the detail view of a
         nonexistent task.
         """
-        response: HttpResponse = self.get_view_response(args=(0,))
+        response: HttpResponse = self.get_view_response(path_args=(0,))
         self.assertEqual(response.status_code, 404)
         
     
@@ -87,7 +87,9 @@ class TaskDetailViewTests(ViewTests):
         Test that the view returns a 404 not found to a POST request for
         a nonexistent task.
         """
-        response = self.client.post(reverse(self.view_name, args=(1,)))
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(1,))
+        )
         self.assertEqual(response.status_code, 404)
     
 
@@ -102,14 +104,12 @@ class TaskDetailViewTests(ViewTests):
             due_date=timezone.now(),
             description="This is a test task.",
         )
-        response: HttpResponse = self.get_view_response(args=(task.pk,))
+        response: HttpResponse = self.get_view_response(path_args=(task.pk,))
         self.assertEqual(response.status_code, 200)
 
 
 class TaskFormTests(TestCase):
     """Tests for TaskForm."""
-
-
     def test_completed_and_incomplete_tasks(self) -> None:
         """
         Test that a task's title is shown in a textarea, its completed status
@@ -175,9 +175,55 @@ class TaskDetailViewPostTests(ViewTests):
         """
         Test that the view returns a 404 not found for a nonexistent task.
         """
-        data = TaskForm(instance=Task(title="Test task")).data
-        response = self.client.post(
-            reverse(self.view_name, args=(1,)),
-            data,
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(1,))
         )
         self.assertEqual(response.status_code, 404)
+
+
+class CreateTaskViewTests(ViewTests):
+    view_name = "todo:create-task"
+
+
+    def test_get_request_not_allowed(self) -> None:
+        """
+        Test that the view returns a 405 Method Not Allowed for a GET request.
+        """
+        response: HttpResponse = self.get_view_response()
+        self.assertEqual(response.status_code, 405)
+    
+
+    def test_valid_post_request(self) -> None:
+        """
+        Test that the view creates a new Task in response to a valid POST
+        request.
+        """
+        task_title = "Test task"
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name),
+            {
+                "title": task_title,
+                "completed": True,
+                "due_date": timezone.now(),
+                "description": "This task should be created",
+            },
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(len(Task.objects.all()), 1)
+    
+
+    def test_invalid_post_request(self) -> None:
+        """
+        Test that the view returns a 400 Bad Request in response to a POST
+        request specifying no title for the task.
+        """
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name),
+            {
+                "completed": True,
+                "due_date": timezone.now(),
+                "description": "This task should not be created.",
+            },
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(len(Task.objects.all()), 0)
