@@ -8,6 +8,7 @@ class Task(models.Model):
     )
     title = models.TextField(
         help_text="The title of the task. (e.g. \"Do laundry\")",
+        unique=True,
     )
     description = models.TextField(
         help_text="A longer description of the task.",
