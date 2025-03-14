@@ -14,8 +14,8 @@
     {% if task_list %}
     <ul>
         {% for task in task_list %}
-        <li>
-            <input id="task-{{ task.id }}-checkbox" type="checkbox" {% if task.completed %}checked{% endif %}>
+        <li class="task-list-item">
+            <input type="checkbox" class="task-list-checkbox" data-task-pk="{{ task.pk }}" {% if task.completed %}checked{% endif %}>
             <a href="{% url "todo:task-detail" task.id %}">{{ task.title }}</a>
         </li>
         {% endfor %}

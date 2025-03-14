@@ -16,6 +16,7 @@ class Task(models.Model):
     due_date = models.DateTimeField(
         help_text="The date and time at which the task is due for completion.",
         null=True,
+        blank=True,
     )
 
 
