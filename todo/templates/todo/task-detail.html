@@ -1,6 +1,11 @@
 {% extends "./base.html" %}
+{% load static %}
 
 {% block title %}{{ form.title.value }}{% endblock %}
+{% block scripts %}
+<script>var CSRF_TOKEN = "{{ csrf_token }}";</script>
+<script src="{% static "todo/task-detail.js" %}" defer></script>
+{% endblock %}
 
 {% block content %}
 <form method="post">
@@ -33,5 +38,10 @@
     </div>
 
     <input type="submit" value="SAVE">
+    <button
+        class="task-detail-delete-button"
+        type="button"
+        data-task-pk="{{ task_pk }}"
+    >DELETE</button>
 </form>
 {% endblock %}

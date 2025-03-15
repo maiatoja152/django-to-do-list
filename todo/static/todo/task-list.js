@@ -32,7 +32,7 @@ function createTask(dataObject) {
 
 function editTaskCompleted(taskPrimaryKey, completed) {
     send_post_request(
-        "api/edit-task-completed/" + taskPrimaryKey.toString(),
+        "/api/edit-task-completed/" + taskPrimaryKey.toString(),
         { completed: completed },
         200,
         () => {},

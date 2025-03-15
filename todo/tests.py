@@ -16,8 +16,6 @@ from bs4 import BeautifulSoup
 from bs4 import Tag
 from bs4 import ResultSet
 
-import datetime
-
 
 class ViewTests(TestCase):
     """Base class for testing views."""
@@ -221,7 +219,7 @@ class TaskFormTests(TestCase):
         )
         incomplete_task: Task = Task(
             title="Incomplete task",
-            completed=True,
+            completed=False,
             due_date=timezone.make_aware(timezone.datetime(2020, 6, 1, 1, 55)),
             description="This is an incomplete task.",
         )
@@ -374,3 +372,41 @@ class EditTaskCompletedViewTests(ViewTests):
         self.assertEqual(response.status_code, 200)
         task.refresh_from_db()
         self.assertFalse(task.completed)
+
+
+class DeleteTaskViewTests(ViewTests):
+    view_name = "todo:delete-task"
+
+
+    def test_get_returns_not_allowed(self) -> None:
+        """
+        Test that the view returns a 405 Method Not Allowed in
+        response to a GET request for an existing task.
+        """
+        response: HttpResponse = self.get_view_response(path_args=(1,))
+        self.assertEqual(response.status_code, 405)
+    
+
+    def test_nonexistent_task_returns_not_found(self) -> None:
+        """
+        Test that the view returns a 404 Not Found in response to
+        a POST request for a nonexistent task.
+        """
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(1,)),
+        )
+        self.assertEqual(response.status_code, 404)
+    
+
+    def test_deletes_task(self) -> None:
+        """
+        Test that the view deletes a task in response to a POST
+        request for the task.
+        """
+        Task.objects.create(title="Test task")
+        self.assertEqual(len(Task.objects.all()), 1)
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(1,))
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(Task.objects.all()), 0)

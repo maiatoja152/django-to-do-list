@@ -68,20 +68,34 @@ input[type="checkbox"] {
     accent-color: var(--accent-color);
 }
 
-input[type="submit"] {
+input[type="submit"], 
+button.task-detail-delete-button {
     padding: 0.5rem 1rem 0.5rem 1rem;
     margin-top: 1rem;
-    background-color: var(--accent-color);
     font-size: 1rem;
     border: none;
     border-radius: 0.5rem;
     font-weight: bold;
 }
+input[type="submit"] {
+    background-color: var(--accent-color);
+}
 input[type="submit"]:hover {
     filter: brightness(110%);
 }
-input[type="submit"]:active {
+input[type="submit"]:active,
+button.task-detail-delete-button:active {
     filter: brightness(120%);
+}
+button.task-detail-delete-button {
+    background-color: transparent;
+    color: var(--dark-red);
+    float: right;
+}
+button.task-detail-delete-button:hover {
+    border: none;
+    background-color: var(--dark-red);
+    color: white;
 }
 
 li.task-list-item {

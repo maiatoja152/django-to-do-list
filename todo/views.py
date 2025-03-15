@@ -28,7 +28,7 @@ def task_detail(request: HttpRequest, pk: int) -> HttpResponse:
     else:
         form = TaskForm(instance=task)
 
-    context = {"task_title": task.title, "form": form}
+    context = {"task_title": task.title, "form": form, "task_pk": task.pk}
     return render(request, "todo/task-detail.html", context)
 
 
@@ -53,4 +53,13 @@ def edit_task_completed(request: HttpRequest, pk: int) -> HttpResponse:
         return HttpResponseBadRequest("\"completed\" field is required.")
     task.completed = request.POST["completed"].lower() == "true"
     task.save()
+    return HttpResponse(status=200)
+
+
+def delete_task(request: HttpRequest, pk: int) -> HttpResponse:
+    if request.method != "POST":
+        return HttpResponseNotAllowed(("POST",))
+    
+    task: Task = get_object_or_404(Task, pk=pk)
+    task.delete()
     return HttpResponse(status=200)

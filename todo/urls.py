@@ -13,4 +13,5 @@ urlpatterns = [
         views.edit_task_completed,
         name="edit-task-completed"
     ),
+    path("api/delete-task/<int:pk>", views.delete_task, name="delete-task"),
 ]
