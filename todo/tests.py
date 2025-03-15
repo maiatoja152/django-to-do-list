@@ -16,6 +16,8 @@ from bs4 import BeautifulSoup
 from bs4 import Tag
 from bs4 import ResultSet
 
+import datetime
+
 
 class ViewTests(TestCase):
     """Base class for testing views."""
@@ -106,6 +108,98 @@ class TaskDetailViewTests(ViewTests):
         )
         response: HttpResponse = self.get_view_response(path_args=(task.pk,))
         self.assertEqual(response.status_code, 200)
+    
+
+    def test_valid_post_request_returns_redirect(self) -> None:
+        """
+        Test that the view returns a redirect in response to a POST
+        request that contains all TaskForm fields and refers to a task
+        that exists.
+        """
+        task: Task = Task.objects.create(title="Test task")
+        new_fields = {
+            "title": "Modified task",
+            "completed": True,
+            "due_date": timezone.make_aware(
+                timezone.datetime(2026, 4, 8, 13, 15)
+            ),
+            "description": "This is a modified task.",
+        }
+        response: HttpResponse = self.client.post(
+            reverse(self.view_name, args=(task.pk,)),
+            new_fields,
+        )
+        self.assertRedirects(
+            response,
+            reverse("todo:task-detail", args=(task.pk,)),
+            status_code=302,
+            target_status_code=200,
+        )
+
+
+    def test_valid_post_request_modifies_task(self) -> None:
+        """
+        Test that the view modifies a task in response to a POST
+        request that contains all TaskForm fields and refers to a task
+        that exists.
+        """
+        task: Task = Task.objects.create(
+            title="Test task",
+            completed=False,
+            due_date=timezone.make_aware(
+                timezone.datetime(2025, 4, 8, 5, 5)
+            ),
+            description="This is an unmodified task.",
+        )
+        new_fields = {
+            "title": "Modified task",
+            "completed": True,
+            "due_date": timezone.make_aware(
+                timezone.datetime(2026, 4, 8, 13, 15)
+            ),
+            "description": "This is a modified task.",
+        }
+        self.client.post(
+            reverse(self.view_name, args=(task.pk,)),
+            new_fields,
+        )
+        task.refresh_from_db()
+        for field_name, new_value in new_fields.items():
+            self.assertEqual(getattr(task, field_name), new_value)
+    
+
+    def test_invalid_post_request_does_not_modify_task(self) -> None:
+        """
+        Test that the view does not modify a task in response to a POST
+        request that refers to a task that exists but is missing the
+        required "title" field.
+        """
+        original_fields = {
+            "title": "Test task",
+            "completed": False,
+            "due_date": timezone.make_aware(
+                timezone.datetime(2025, 4, 8, 5, 5)
+            ),
+            "description": "This is an unmodified task.",
+        }
+        task: Task = Task.objects.create(**original_fields)
+        new_fields = {
+            "completed": True,
+            "due_date": timezone.make_aware(
+                timezone.datetime(2026, 4, 8, 13, 15)
+            ),
+            "description": "This is a modified task.",
+        }
+        self.client.post(
+            reverse(self.view_name, args=(task.pk,)),
+            new_fields,
+        )
+        # Assert that the task's fields were not modified.
+        task.refresh_from_db()
+        for field_name, new_value in new_fields.items():
+            self.assertNotEqual(getattr(task, field_name), new_value)
+        for field_name, original_value in original_fields.items():
+            self.assertEqual(getattr(task, field_name), original_value)
 
 
 class TaskFormTests(TestCase):
@@ -164,21 +258,6 @@ class TaskFormTests(TestCase):
             description_string: Optional[str] = description.string
             self.assertTrue(isinstance(description_string, str))
             self.assertEqual(description_string.strip(), task.description)
-
-
-class TaskDetailViewPostTests(ViewTests):
-    """Tests for the task detail view with POST requests."""
-    view_name = "todo:task-detail"
-
-
-    def test_post_returns_404_for_nonexistent_task(self) -> None:
-        """
-        Test that the view returns a 404 not found for a nonexistent task.
-        """
-        response: HttpResponse = self.client.post(
-            reverse(self.view_name, args=(1,))
-        )
-        self.assertEqual(response.status_code, 404)
 
 
 class CreateTaskViewTests(ViewTests):
