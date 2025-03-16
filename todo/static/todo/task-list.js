@@ -50,7 +50,7 @@ const taskListCheckboxes = document.querySelectorAll("input.task-list-checkbox")
 for (const checkbox of taskListCheckboxes) {
     checkbox.addEventListener("change", () => {
         editTaskCompleted(
-            checkbox.dataset.taskPk,
+            checkbox.parentNode.dataset.taskPk,
             checkbox.checked,
         );
     });
