@@ -53,7 +53,10 @@ class TaskListViewTests(ViewTests):
         """
         tasks: List[Task] = []
         for i in range(5):
-            tasks.append(Task.objects.create(title=f"Task {i}"))
+            tasks.append(Task.objects.create(
+                title=f"Task {i}",
+                completed=i % 2 == 0,
+            ))
         
         response: HttpResponse = self.get_view_response()
         self.assertQuerySetEqual(
@@ -65,7 +68,9 @@ class TaskListViewTests(ViewTests):
         for task in tasks:
             self.assertContains(response, task.title)
             # Test checkbox
-            checkbox: Tag = soup.select(f"input.task-list-checkbox")[0]
+            checkbox: Tag = soup.select(
+                f"li[data-task-pk=\"{task.pk}\"] input.task-list-checkbox"
+            )[0]
             if task.completed:
                 self.assertIn("checked", checkbox.attrs)
             else:
