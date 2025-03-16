@@ -9,13 +9,17 @@
 
 {% block content %}
 <form>
-    <textarea type="text" class="task-title" rows="1" placeholder="Add a new task..."></textarea>
+    <textarea id="add-task-input" class="task-title" rows="1" placeholder="Add a new task..."></textarea>
     <h1>Tasks</h1>
     {% if task_list %}
     <ul>
         {% for task in task_list %}
-        <li class="task-list-item">
-            <input type="checkbox" class="task-list-checkbox" data-task-pk="{{ task.pk }}" {% if task.completed %}checked{% endif %}>
+        <li class="task-list-item" data-task-pk="{{ task.pk }}">
+            <input
+                type="checkbox"
+                class="task-list-checkbox"
+                {% if task.completed %}checked{% endif %}
+            >
             <a href="{% url "todo:task-detail" task.id %}">{{ task.title }}</a>
         </li>
         {% endfor %}

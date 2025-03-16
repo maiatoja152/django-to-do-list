@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
 from django.urls import reverse
 from django.http import HttpResponse
@@ -15,6 +16,9 @@ from typing import Optional
 from bs4 import BeautifulSoup
 from bs4 import Tag
 from bs4 import ResultSet
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 
 
 class ViewTests(TestCase):
@@ -410,3 +414,42 @@ class DeleteTaskViewTests(ViewTests):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(Task.objects.all()), 0)
+
+
+class SeleniumTests(StaticLiveServerTestCase):
+    """Tests using Selenium."""
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.chrome_driver = webdriver.Chrome()
+        cls.chrome_driver.implicitly_wait(5)
+
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.chrome_driver.quit()
+
+
+    def test_add_task_from_list_view(self) -> None:
+        self.chrome_driver.get(
+            self.live_server_url + reverse("todo:task-list")
+        )
+        tasks_created: List[str] = []
+        for i in range(5):
+            task_title: str = f"Test task {i}"
+            add_task_input = self.chrome_driver.find_element(
+                By.ID,
+                "add-task-input"
+            )
+            add_task_input.send_keys(task_title, webdriver.Keys.ENTER)
+            tasks_created.append(Task.objects.get(title=task_title))
+            # Test that the new task and all past tasks are displayed.
+            for task in tasks_created:
+                list_item = self.chrome_driver.find_element(
+                    By.CSS_SELECTOR,
+                    f"li[data-task-pk=\"{task.pk}\"]",
+                )
+                self.assertEqual(
+                    list_item.find_element(By.TAG_NAME, "a").text,
+                    task.title,
+                )
