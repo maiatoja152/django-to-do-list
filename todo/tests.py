@@ -430,7 +430,11 @@ class SeleniumTests(StaticLiveServerTestCase):
         cls.chrome_driver.quit()
 
 
-    def test_add_task_from_list_view(self) -> None:
+    def test_add_tasks_from_list_view(self) -> None:
+        """
+        Test that tasks are successfully created and displayed after
+        using the "Add a new task" input from the task-list view.
+        """
         self.chrome_driver.get(
             self.live_server_url + reverse("todo:task-list")
         )
