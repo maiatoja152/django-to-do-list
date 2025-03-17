@@ -20,6 +20,8 @@ from bs4 import ResultSet
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+import time
+
 
 class ViewTests(TestCase):
     """Base class for testing views."""
@@ -489,3 +491,25 @@ class SeleniumTests(StaticLiveServerTestCase):
         self.assertIsNone(checkbox.get_attribute("checked"))
         task.refresh_from_db(fields=["completed"])
         self.assertEqual(task.completed, False)
+
+
+    def test_delete_task_from_detail_view(self) -> None:
+        """
+        Test that the delete button in the task-detail view deletes
+        the task and changes the page to the task-list page.
+        """
+        task_pk: int = Task.objects.create(title="Test task").pk
+        self.chrome_driver.get(
+            self.live_server_url + reverse("todo:task-detail", args=(task_pk,))
+        )
+        self.chrome_driver.find_element(
+            By.CSS_SELECTOR,
+            "button.task-detail-delete-button"
+        ).click()
+        # Give some time for the app to delete the task.
+        time.sleep(0.5)
+        self.assertRaises(Task.DoesNotExist, Task.objects.get, pk=task_pk)
+        self.assertEqual(
+            self.chrome_driver.current_url,
+            self.live_server_url + reverse("todo:task-list"),
+        )
