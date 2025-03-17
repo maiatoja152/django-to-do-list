@@ -462,3 +462,30 @@ class SeleniumTests(StaticLiveServerTestCase):
                     list_item.find_element(By.TAG_NAME, "a").text,
                     task.title,
                 )
+
+    
+    def test_checkbox_from_list_view(self) -> None:
+        """
+        Test that checking a task's checkbox completes the task and
+        unchecking it sets the task to incomplete.
+        """
+        task: Task = Task.objects.create(title="Test task", completed=False)
+        self.chrome_driver.get(
+            self.live_server_url + reverse("todo:task-list")
+        )
+        checkbox = self.chrome_driver.find_element(
+            By.CSS_SELECTOR,
+            f"li[data-task-pk='{task.pk}'] input.task-list-checkbox"
+        )
+        self.assertIsNone(checkbox.get_attribute("checked"))
+        self.assertEqual(task.completed, False)
+
+        checkbox.click()
+        self.assertIsNotNone(checkbox.get_attribute("checked"))
+        task.refresh_from_db(fields=["completed"])
+        self.assertEqual(task.completed, True)
+
+        checkbox.click()
+        self.assertIsNone(checkbox.get_attribute("checked"))
+        task.refresh_from_db(fields=["completed"])
+        self.assertEqual(task.completed, False)
