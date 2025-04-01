@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+from typing import Optional
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,13 +22,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3ep+h%f+vwd&@nh8w=xec$n$g08d+wky-fw7t)75$p3zhdz)1z'
+if "DJANGO_SECRET_KEY_FILE" in os.environ:
+    with open(os.environ["DJANGO_SECRET_KEY_FILE"]) as f:
+        SECRET_KEY = f.read().strip()
+else:
+    SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "INSECURE_SECRET")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.getenv("DJANGO_DEBUG", 1))
 
-ALLOWED_HOSTS = []
+allowed_hosts_env: Optional[str] = os.getenv("DJANGO_ALLOWED_HOSTS")
+if allowed_hosts_env is not None:
+    ALLOWED_HOSTS = allowed_hosts_env.split(",")
+else:
+    ALLOWED_HOSTS = ["localhost",]
 
 
 # Application definition
@@ -75,11 +84,25 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": {
+        "ENGINE": f"django.db.backends.{os.getenv(
+            "DJANGO_DB_ENGINE",
+            "sqlite3",
+        )}",
+        'NAME': os.getenv("DJANGO_DB_NAME", "django-to-do-list"),
+        "USER": os.getenv("DJANGO_DB_USERNAME", "django-to-do-list"),
+        "HOST": os.getenv("DJANGO_DB_HOST", "127.0.0.1"),
+        "PORT": os.getenv("DJANGO_DB_PORT", 5432),
+    },
 }
+if "DJANGO_DB_PASSWORD_FILE" in os.environ:
+    with open(os.environ["DJANGO_DB_PASSWORD_FILE"]) as f:
+        DATABASES["default"]["PASSWORD"] = f.read().strip()
+else:
+    DATABASES["default"]["PASSWORD"] = os.getenv(
+        "DJANGO_DB_PASSWORD",
+        "password"
+    )
 
 
 # Password validation
@@ -117,6 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = "/usr/src/app/static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

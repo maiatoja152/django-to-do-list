@@ -1,0 +1,17 @@
+Dockerfile
+
+.venv
+README.md
+db.sqlite3
+.ruff_cache
+.git
+.gitignore
+postgres_data/
+static/
+secrets/
+proxy/
+
+**/*.pyc
+**/*.pyo
+**/*.mo
+**/__pycache__/

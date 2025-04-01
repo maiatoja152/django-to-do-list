@@ -1,0 +1,80 @@
+secrets:
+  DJANGO_SECRET_KEY:
+    file: "secrets/DJANGO_SECRET_KEY"
+  DB_PASSWORD:
+    file: "secrets/DB_PASSWORD"
+networks:
+  db:
+  proxy:
+volumes:
+  postgres_data:
+  static:
+services:
+  proxy:
+    image: nginx:1.27.4
+    networks:
+      - proxy
+    ports:
+      - "8000:80"
+    volumes:
+      - ./proxy/templates:/etc/nginx/templates
+      - static:/static:ro
+    environment:
+      NGINX_PORT: 80
+      NGINX_PROXY_HOST: app
+      NGINX_PROXY_PORT: 8000
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+  app:
+    image: django-to-do-list
+    networks:
+      - proxy
+      - db
+    expose:
+      - 8000
+    volumes:
+      - static:/usr/src/app/static
+    secrets:
+      - DJANGO_SECRET_KEY
+      - DB_PASSWORD
+    environment:
+      DJANGO_SECRET_KEY_FILE: /run/secrets/DJANGO_SECRET_KEY
+      DJANGO_DEBUG: 1
+      # Comma-separated list (e.g. "localhost,myapp,todo.com")
+      DJANGO_ALLOWED_HOSTS: "localhost"
+
+      DJANGO_DB_ENGINE: postgresql
+      DJANGO_DB_NAME: django-to-do-list
+      DJANGO_DB_USERNAME: django-to-do-list
+      DJANGO_DB_PASSWORD_FILE: /run/secrets/DB_PASSWORD
+      DJANGO_DB_HOST: db
+      DJANGO_DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000"]
+  db:
+    image: postgres:17
+    networks:
+      - db
+    expose:
+      - 5432
+    secrets:
+      - DB_PASSWORD
+    environment:
+      PGUSER: django-to-do-list
+      POSTGRES_DB: django-to-do-list
+      POSTGRES_USER: django-to-do-list
+      POSTGRES_PASSWORD_FILE: /run/secrets/DB_PASSWORD
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "$${POSTGRES_USER}"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
