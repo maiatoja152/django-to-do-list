@@ -470,7 +470,7 @@ class SeleniumTests(StaticLiveServerTestCase):
             )
             add_task_input.send_keys(task_title, webdriver.Keys.ENTER)
             # Wait for the task to be added to the database
-            self.chrome_driver.implicitly_wait(0.5)
+            time.sleep(0.2)
             tasks_created.append(Task.objects.get(title=task_title))
             self.verify_tasks_listed(tasks_created)
 
@@ -498,7 +498,7 @@ class SeleniumTests(StaticLiveServerTestCase):
             )
             add_task_button.click()
             # Wait for the task to be added to the database
-            self.chrome_driver.implicitly_wait(0.5)
+            time.sleep(0.2)
             tasks_created.append(Task.objects.get(title=task_title))
             self.verify_tasks_listed(tasks_created)
 
