@@ -42,6 +42,14 @@ function editTaskCompleted(taskPrimaryKey, completed) {
 const taskTitleTextarea = document.querySelector("textarea.task-title");
 taskTitleTextarea.addEventListener("keyup", ({key}) => {
     if (key === "Enter") {
+        if (taskTitleTextarea.value.length > 0) {
+            createTask({ title: taskTitleTextarea.value });
+        }
+    }
+});
+const addTaskButton = document.querySelector("#add-task-button");
+addTaskButton.addEventListener("click", () => {
+    if (taskTitleTextarea.value.length > 0) {
         createTask({ title: taskTitleTextarea.value });
     }
 });

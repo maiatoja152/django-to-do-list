@@ -49,6 +49,10 @@ a {
     color: inherit;
 }
 
+.margin-top {
+    margin-top: 1rem;
+}
+
 textarea, input {
     border: 1px solid var(--black);
     border-radius: 0.2rem;
@@ -56,34 +60,40 @@ textarea, input {
 }
 textarea {
     width: 100%;
-    max-width: var(--main-column-width);
 }
 textarea.task-title {
-    margin-top: 1rem;
     font-size: 1.5rem;
     font-weight: bold;
+}
+#add-task-container {
+    display: grid;
+    grid-template-columns: auto min-content;
+    column-gap: 0.5rem;
 }
 
 input[type="checkbox"] {
     accent-color: var(--accent-color);
 }
 
-input[type="submit"], 
+#add-task-button,
+#save-task-button,
 button.task-detail-delete-button {
     padding: 0.5rem 1rem 0.5rem 1rem;
-    margin-top: 1rem;
     font-size: 1rem;
     border: none;
     border-radius: 0.5rem;
     font-weight: bold;
 }
-input[type="submit"] {
+#add-task-button,
+#save-task-button {
     background-color: var(--accent-color);
 }
-input[type="submit"]:hover {
+#add-task-button:hover,
+#save-task-button:hover {
     filter: brightness(110%);
 }
-input[type="submit"]:active,
+#add-task-button:active,
+#save-task-button:active,
 button.task-detail-delete-button:active {
     filter: brightness(120%);
 }

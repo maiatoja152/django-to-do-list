@@ -435,6 +435,22 @@ class SeleniumTests(StaticLiveServerTestCase):
     @classmethod
     def tearDownClass(cls):
         cls.chrome_driver.quit()
+    
+
+    def verify_tasks_listed(self, tasks: List[Task]) -> None:
+        """
+        Verify that a list of tasks is being listed correctly
+        in the current task-list view.
+        """
+        for task in tasks:
+            list_item = self.chrome_driver.find_element(
+                By.CSS_SELECTOR,
+                f"li[data-task-pk=\"{task.pk}\"]",
+            )
+            self.assertEqual(
+                list_item.find_element(By.TAG_NAME, "a").text,
+                task.title,
+            )
 
 
     def test_add_tasks_from_list_view(self) -> None:
@@ -453,17 +469,38 @@ class SeleniumTests(StaticLiveServerTestCase):
                 "add-task-input"
             )
             add_task_input.send_keys(task_title, webdriver.Keys.ENTER)
+            # Wait for the task to be added to the database
+            self.chrome_driver.implicitly_wait(0.5)
             tasks_created.append(Task.objects.get(title=task_title))
-            # Test that the new task and all past tasks are displayed.
-            for task in tasks_created:
-                list_item = self.chrome_driver.find_element(
-                    By.CSS_SELECTOR,
-                    f"li[data-task-pk=\"{task.pk}\"]",
-                )
-                self.assertEqual(
-                    list_item.find_element(By.TAG_NAME, "a").text,
-                    task.title,
-                )
+            self.verify_tasks_listed(tasks_created)
+
+
+    def test_add_tasks_from_list_view_using_button(self) -> None:
+        """
+        Test that tasks are successfully created and displayed after
+        using the "Add a new task" input and then the "ADD" button
+        from the task-list view.
+        """
+        self.chrome_driver.get(
+            self.live_server_url + reverse("todo:task-list")
+        )
+        tasks_created: List[str] = []
+        for i in range(5):
+            task_title: str = f"Test task {i}"
+            add_task_input = self.chrome_driver.find_element(
+                By.ID,
+                "add-task-input"
+            )
+            add_task_input.send_keys(task_title)
+            add_task_button = self.chrome_driver.find_element(
+                By.ID,
+                "add-task-button"
+            )
+            add_task_button.click()
+            # Wait for the task to be added to the database
+            self.chrome_driver.implicitly_wait(0.5)
+            tasks_created.append(Task.objects.get(title=task_title))
+            self.verify_tasks_listed(tasks_created)
 
     
     def test_checkbox_from_list_view(self) -> None:

@@ -35,7 +35,7 @@ class TaskForm(forms.ModelForm):
         ]
         widgets = {
             "title": forms.Textarea(attrs={
-                "class": "task-title",
+                "class": "task-title margin-top",
                 "rows": 1,
                 "cols": 60
             }),
